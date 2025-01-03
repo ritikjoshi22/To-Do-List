@@ -63,7 +63,8 @@ Follow these steps to set up and run the project locally:
 
 ---
 
-    Project Structure
+
+### Project Structure
 
 1. index.php: Main file displaying the to-do list and task management features.
 2. add_task.php: Handles adding new tasks to the database or text file.
