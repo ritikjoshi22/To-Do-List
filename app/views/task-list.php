@@ -1,3 +1,6 @@
+<?php
+require 'db_conn.php';
+?>
 <!doctype html>
 <html lang="en">
 
@@ -58,8 +61,7 @@
         }
 
         input[type="checkbox"] {
-            background-color: #4caf50;
-            /* Green checkbox */
+            background-color: white;
         }
 
         .container {
@@ -97,11 +99,30 @@
 
         <div class="task-list bg-dark text-white p-4 rounded shadow-lg">
             <!-- Add New Task Button -->
-            <button class="add-new-btn">
-                +Add New
-            </button>
+            <div class="add-section">
+                <form action="app/add.php" method="POST" autocomplete="off">
+                    <?php if (isset($_GET['mess']) && $_GET['mess'] == 'error') { ?>
+                        <input type="text"
+                            name="title"
+                            style="border-color: #ff6666;"
+                            placeholder="This field is required" />
+                        <button type="submit">Add &nbsp; <span>&#43;</span></button>
+
+                    <?php } else { ?>
+                        <input type="text"
+                            name="title"
+                            placeholder="What do you need to do?"
+                            style="border: none;
+                            border-radius:10px;
+                            height:30px;
+                            width:300px;
+                            text-align: center;" />
+                        <button type="submit" class="add-new-btn">Add &nbsp; <span>&#43;</span></button>
+                    <?php } ?>
+                </form>
+            </div>
             <?php foreach ($tasks as $task): ?>
-                <div class="task-item d-flex align-items-center justify-content-between mb-3">
+                <div id="task-<?= $task['id']; ?>" class="task-item d-flex align-items-center justify-content-between mb-3">
                     <div>
                         <input type="checkbox" class="form-check-input me-2" <?= $task['status'] === 'completed' ? 'checked' : '' ?>>
                         <span class="<?= $task['status'] === 'completed' ? 'text-decoration-line-through' : '' ?>">
@@ -109,14 +130,47 @@
                         </span>
                     </div>
                     <div style="margin-left: 20px;">
-                        <button class="btn btn-warning btn-sm me-2">Edit</button>
-                        <button class="btn btn-danger btn-sm">Delete</button>
+                        <button class="btn btn-warning btn-sm me-2" onclick="">Edit</button>
+                        <form action="app/delete.php" method="POST" autocomplete="off">
+                            <?php if (isset($_GET['mess']) && $_GET['mess'] == 'error') { ?>
+                                <button class="delete-btn btn btn-danger btn-sm" id="<?php echo $task["id"]; ?>">Delete</button>
+                            <?php } ?>
+                        </form>
                     </div>
                 </div>
             <?php endforeach; ?>
 
         </div>
     </div>
+    <script>
+        document.querySelectorAll('.form-check-input').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const taskTitle = this.nextElementSibling; // The span element next to the checkbox
+                if (this.checked) {
+                    taskTitle.classList.add('text-decoration-line-through');
+                } else {
+                    taskTitle.classList.remove('text-decoration-line-through');
+                }
+            });
+        });
+        // const deleteBtn = document.querySelectorAll('.delete-btn');
+        // deleteBtn.forEach(button=>{
+        //     button.addEventListener('click', function(){
+        //         const id = $(this).attr('id');
+
+        //         $.post("app/delete.php", 
+        //               {
+        //                   id: id
+        //               },
+        //               (data)  => {
+        //                  if(data){
+        //                      $(this).parent().hide(600);
+        //                  }
+        //               }
+        //         );
+        //     })
+        // })
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 
