@@ -1,24 +1,50 @@
 <?php
 // Model: Handles data and logic for tasks
-class Task {
+
+class Task
+{
     private $tasks = []; // Array to hold tasks
 
-    public function __construct() {
-        // Simulate some initial tasks
-        $this->tasks = [
-            ["id" => 1, "title" => "Complete homework", "status" => "pending"],
-            ["id" => 2, "title" => "Clean the house", "status" => "completed"],
-            ["id" => 3, "title" => "Go grocery shopping", "status" => "pending"]
-        ];
+    public function __construct()
+    {
+        $host = "localhost";
+        $username = "root";
+        $password = "";
+        $database = "test_db";
+
+        $conn = new mysqli($host, $username, $password, $database);
+        // Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+
+        //Retrieving all the task from the tasks table
+        $sql = "SELECT * FROM tasks";
+        $result = $conn->query($sql);
+        $this->tasks = [];
+        if($result->num_rows > 0){
+            while($row = $result->fetch_assoc()){
+            $this->tasks[] = [
+                "id" => $row["id"],
+                "title" => $row["title"],
+                "status" => $row["status"]
+            ];
+            }
+        }else{
+            $this->tasks = [];
+        }
+        $conn->close();
     }
 
     // Function to fetch all tasks
-    public function getAllTasks() {
+    public function getAllTasks()
+    {
         return $this->tasks;
     }
 
     // Function to add a new task
-    public function addTask($title) {
+    public function addTask($title)
+    {
         $newTask = [
             "id" => count($this->tasks) + 1, // Generate a unique ID
             "title" => $title,
@@ -29,7 +55,8 @@ class Task {
     }
 
     // Function to mark a task as completed
-    public function completeTask($id) {
+    public function completeTask($id)
+    {
         foreach ($this->tasks as &$task) {
             if ($task["id"] == $id) {
                 $task["status"] = "completed";
@@ -40,7 +67,8 @@ class Task {
     }
 
     // Function to delete a task
-    public function deleteTask($id) {
+    public function deleteTask($id)
+    {
         foreach ($this->tasks as $key => $task) {
             if ($task["id"] == $id) {
                 unset($this->tasks[$key]);
@@ -50,4 +78,3 @@ class Task {
         return false; // Task not found
     }
 }
-?>
