@@ -130,11 +130,12 @@ require 'db_conn.php';
                         </span>
                     </div>
                     <div style="margin-left: 20px;">
-                        <button class="btn btn-warning btn-sm me-2" onclick="">Edit</button>
+                        <button class="btn btn-warning btn-sm me-2">Edit</button>
                         <form action="app/delete.php" method="POST" autocomplete="off">
-                            <?php if (isset($_GET['mess']) && $_GET['mess'] == 'error') { ?>
-                                <button class="delete-btn btn btn-danger btn-sm" id="<?php echo $task["id"]; ?>">Delete</button>
-                            <?php } ?>
+
+                            <div>
+                            <button name="id" class="delete-btn btn btn-danger btn-sm" id="<?= $task["id"]; ?>">Delete</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -153,23 +154,39 @@ require 'db_conn.php';
                 }
             });
         });
-        // const deleteBtn = document.querySelectorAll('.delete-btn');
-        // deleteBtn.forEach(button=>{
-        //     button.addEventListener('click', function(){
-        //         const id = $(this).attr('id');
+        // Use event delegation
+        document.addEventListener('click', function (e) {
+        // Check if the clicked element is a delete button
+        if (e.target.classList.contains('delete-btn')) {
+            e.preventDefault(); // Prevent form submission or navigation
 
-        //         $.post("app/delete.php", 
-        //               {
-        //                   id: id
-        //               },
-        //               (data)  => {
-        //                  if(data){
-        //                      $(this).parent().hide(600);
-        //                  }
-        //               }
-        //         );
-        //     })
-        // })
+            // Get the task ID from the button's `id` attribute
+            const id = e.target.getAttribute('id');
+            
+            // Make an AJAX call to delete.php
+            fetch("app/delete.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: `id=${id}`,
+            })
+            .then((response) => response.text())
+            .then((data) => {
+                if (data.trim() === "1") {
+                    // Successfully deleted; remove the task from DOM
+                    const taskElement = document.getElementById(`task-${id}`);
+                    taskElement.remove();
+                } else {
+                    // Handle failure
+                    alert("Failed to delete the task. Please try again.");
+                }
+            })
+            .catch((error) => {
+                console.error("Error deleting task:", error);
+            });
+        }
+    });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>

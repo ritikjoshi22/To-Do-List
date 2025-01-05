@@ -1,6 +1,5 @@
 <?php
-
-if (isset($_POST['id'])){
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $host = "localhost";
     $username = "root";
     $password = "";
@@ -12,21 +11,20 @@ if (isset($_POST['id'])){
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
-    // Delete: Delete a record from the users table
+
     $taskId = intval($_POST['id']);
     $sql = "DELETE FROM tasks WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $taskId);
 
     if ($stmt->execute()) {
-        header("Location: ../index.php?mess=success"); 
+        echo 1; // Success
     } else {
-        header("Location: ../index.php"); 
+        echo 0; // Failure
     }
 
-   $conn->close();
-}else{
-    header("Location: ../index.php?mess=error");
+    $conn->close();
+} else {
+    echo 0; // Failure
 }
-    
 ?>
