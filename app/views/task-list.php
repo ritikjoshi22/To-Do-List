@@ -124,19 +124,14 @@ require 'db_conn.php';
             <?php foreach ($tasks as $task): ?>
                 <div id="task-<?= $task['id']; ?>" class="task-item d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <input type="checkbox" class="form-check-input me-2" <?= $task['status'] === 'completed' ? 'checked' : '' ?>>
+                        <input name="cbId" id="<?= $task["id"]?>" type="checkbox" class="form-check-input me-2" <?= $task['status'] === 'completed' ? 'checked' : '' ?>>
                         <span class="<?= $task['status'] === 'completed' ? 'text-decoration-line-through' : '' ?>">
                             <?= htmlspecialchars($task['title']) ?>
                         </span>
                     </div>
                     <div style="margin-left: 20px;">
                         <button class="btn btn-warning btn-sm me-2">Edit</button>
-                        <form action="app/delete.php" method="POST" autocomplete="off">
-
-                            <div>
                             <button name="id" class="delete-btn btn btn-danger btn-sm" id="<?= $task["id"]; ?>">Delete</button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -145,15 +140,38 @@ require 'db_conn.php';
     </div>
     <script>
         document.querySelectorAll('.form-check-input').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const taskTitle = this.nextElementSibling; // The span element next to the checkbox
-                if (this.checked) {
-                    taskTitle.classList.add('text-decoration-line-through');
-                } else {
-                    taskTitle.classList.remove('text-decoration-line-through');
-                }
-            });
+    checkbox.addEventListener('change', function () {
+        const id = this.getAttribute('id'); // Get the task ID from the checkbox ID attribute
+        const taskTitle = this.nextElementSibling; // The span element next to the checkbox
+        const status = this.checked ? 'completed' : 'pending'; // Determine the new status
+
+        // Update the visual effect on the frontend
+        if (this.checked) {
+            taskTitle.classList.add('text-decoration-line-through');
+        } else {
+            taskTitle.classList.remove('text-decoration-line-through');
+        }
+
+        // Send AJAX request to update the database
+        fetch("app/check.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `id=${id}&status=${status}`,
+        })
+        .then(response => response.text())
+        .then(data => {
+            if (data.trim() !== "1") {
+                alert("Failed to update the task status. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error updating task status:", error);
         });
+    });
+});
+
         // Use event delegation
         document.addEventListener('click', function (e) {
         // Check if the clicked element is a delete button
