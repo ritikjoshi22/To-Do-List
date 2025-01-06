@@ -124,14 +124,14 @@ require 'db_conn.php';
             <?php foreach ($tasks as $task): ?>
                 <div id="task-<?= $task['id']; ?>" class="task-item d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <input name="cbId" id="<?= $task["id"]?>" type="checkbox" class="form-check-input me-2" <?= $task['status'] === 'completed' ? 'checked' : '' ?>>
+                        <input name="cbId" id="<?= $task["id"] ?>" type="checkbox" class="form-check-input me-2" <?= $task['status'] === 'completed' ? 'checked' : '' ?>>
                         <span class="<?= $task['status'] === 'completed' ? 'text-decoration-line-through' : '' ?>">
                             <?= htmlspecialchars($task['title']) ?>
                         </span>
                     </div>
                     <div style="margin-left: 20px;">
-                        <button class="btn btn-warning btn-sm me-2">Edit</button>
-                            <button name="id" class="delete-btn btn btn-danger btn-sm" id="<?= $task["id"]; ?>">Delete</button>
+                        <button class="edit-btn btn btn-warning btn-sm me-2">Edit</button>
+                        <button name="id" class="delete-btn btn btn-danger btn-sm" id="<?= $task["id"]; ?>">Delete</button>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -140,71 +140,108 @@ require 'db_conn.php';
     </div>
     <script>
         document.querySelectorAll('.form-check-input').forEach(checkbox => {
-    checkbox.addEventListener('change', function () {
-        const id = this.getAttribute('id'); // Get the task ID from the checkbox ID attribute
-        const taskTitle = this.nextElementSibling; // The span element next to the checkbox
-        const status = this.checked ? 'completed' : 'pending'; // Determine the new status
+            checkbox.addEventListener('change', function() {
+                const id = this.getAttribute('id'); // Get the task ID from the checkbox ID attribute
+                const taskTitle = this.nextElementSibling; // The span element next to the checkbox
+                const status = this.checked ? 'completed' : 'pending'; // Determine the new status
 
-        // Update the visual effect on the frontend
-        if (this.checked) {
-            taskTitle.classList.add('text-decoration-line-through');
-        } else {
-            taskTitle.classList.remove('text-decoration-line-through');
-        }
+                // Update the visual effect on the frontend
+                if (this.checked) {
+                    taskTitle.classList.add('text-decoration-line-through');
+                } else {
+                    taskTitle.classList.remove('text-decoration-line-through');
+                }
 
-        // Send AJAX request to update the database
-        fetch("app/check.php", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: `id=${id}&status=${status}`,
-        })
-        .then(response => response.text())
-        .then(data => {
-            if (data.trim() !== "1") {
-                alert("Failed to update the task status. Please try again.");
-            }
-        })
-        .catch(error => {
-            console.error("Error updating task status:", error);
+                // Send AJAX request to update the database
+                fetch("app/check.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: `id=${id}&status=${status}`,
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        if (data.trim() !== "1") {
+                            alert("Failed to update the task status. Please try again.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error updating task status:", error);
+                    });
+            });
         });
-    });
-});
 
         // Use event delegation
-        document.addEventListener('click', function (e) {
-        // Check if the clicked element is a delete button
-        if (e.target.classList.contains('delete-btn')) {
-            e.preventDefault(); // Prevent form submission or navigation
+        document.addEventListener('click', function(e) {
+            // Check if the clicked element is a delete button
+            if (e.target.classList.contains('delete-btn')) {
+                e.preventDefault(); // Prevent form submission or navigation
 
-            // Get the task ID from the button's `id` attribute
-            const id = e.target.getAttribute('id');
-            
-            // Make an AJAX call to delete.php
-            fetch("app/delete.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: `id=${id}`,
-            })
-            .then((response) => response.text())
-            .then((data) => {
-                if (data.trim() === "1") {
-                    // Successfully deleted; remove the task from DOM
-                    const taskElement = document.getElementById(`task-${id}`);
-                    taskElement.remove();
-                } else {
-                    // Handle failure
-                    alert("Failed to delete the task. Please try again.");
-                }
-            })
-            .catch((error) => {
-                console.error("Error deleting task:", error);
-            });
-        }
-    });
+                // Get the task ID from the button's `id` attribute
+                const id = e.target.getAttribute('id');
+
+                // Make an AJAX call to delete.php
+                fetch("app/delete.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: `id=${id}`,
+                    })
+                    .then((response) => response.text())
+                    .then((data) => {
+                        if (data.trim() === "1") {
+                            // Successfully deleted; remove the task from DOM
+                            const taskElement = document.getElementById(`task-${id}`);
+                            taskElement.remove();
+                        } else {
+                            // Handle failure
+                            alert("Failed to delete the task. Please try again.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error deleting task:", error);
+                    });
+            }
+        });
+        document.addEventListener('click', function(e) {
+            // Check if the clicked element is an edit button
+            if (e.target.classList.contains('edit-btn')) {
+                e.preventDefault();
+
+                // Get the task ID from the button's `id` attribute
+                const taskId = e.target.closest('.task-item').getAttribute('id').split('-')[1];
+                const taskTitleElement = e.target.closest('.task-item').querySelector('span');
+
+                // Prompt the user for a new title
+                const newTitle = prompt("Enter the new title for the task:", taskTitleElement.textContent);
+
+                // If the user clicks "Cancel" or doesn't provide input, exit
+                if (!newTitle) return;
+
+                // Send AJAX request to update the title in the database
+                fetch("app/edit.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: `id=${taskId}&title=${encodeURIComponent(newTitle)}`,
+                    })
+                    .then((response) => response.text())
+                    .then((data) => {
+                        if (data.trim() === "1") {
+                            // Successfully updated; update the title in the frontend
+                            taskTitleElement.textContent = newTitle;
+                        } else {
+                            alert("Failed to update the task title. Please try again.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error updating task title:", error);
+                    });
+            }
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
